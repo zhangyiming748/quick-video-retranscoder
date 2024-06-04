@@ -34,6 +34,9 @@ func main() {
 				if strings.Contains(file, "quick") {
 					continue
 				}
+				if strings.Contains(file, "done") {
+					continue
+				}
 				mi := FastMediaInfo.GetStandMediaInfo(file)
 				path, fname := filepath.Split(file)
 				baseName := strings.Replace(fname, filepath.Ext(fname), "", 1)
