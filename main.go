@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"quick-video-retranscoder/util"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -19,6 +20,11 @@ func init() {
 	util.ExitAfterRun()
 }
 func main() {
+	t := new(util.ProcessDuration)
+	t.SetStart(time.Now())
+	defer func() {
+		log.Printf("程序总用时:%v\n", t.GetDuration().Minutes())
+	}()
 	err := filepath.Walk(util.GetRoot(), func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -44,9 +50,9 @@ func main() {
 				afterName := strings.Join([]string{baseName, "quick"}, "_")
 				afterName = strings.Join([]string{afterName, "mp4"}, ".")
 				afterName = strings.Join([]string{path, afterName}, "")
-				cmd := exec.Command("ffmpeg", "-i", file, "-c:v", util.GenerateFFmpegParamsForCurrentSystem(), "-c:a", "copy", afterName)
+				cmd := exec.Command("ffmpeg", "-i", file, "-c:v", util.GenerateFFmpegParamsForCurrentSystem(), afterName)
 				log.Printf("mi:%+v\npath:%+v\nbase:%+v\next:%+v\naftername:%+v\ncmd:%+v\n", mi, path, baseName, extension, afterName, cmd.String())
-				err = util.ExecCommand(cmd, fmt.Sprintf("正在处理快照的视频:%v", baseName))
+				err = util.ExecCommand(cmd, fmt.Sprintf("正在处理快照的视频:%v\t帧数%v", baseName, mi.Video.FrameCount))
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -57,4 +63,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	t.SetEnd(time.Now())
 }
